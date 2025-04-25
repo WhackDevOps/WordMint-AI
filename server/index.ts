@@ -1,7 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import { connectDB } from "./db";
+import mongoose from 'mongoose';
 import dotenv from "dotenv";
 
 // Load environment variables
@@ -43,20 +43,22 @@ app.use((req, res, next) => {
   next();
 });
 
+// Connect to MongoDB directly
+mongoose.connect(process.env.MONGODB_URI!, {
+  dbName: 'contentbot', // Default database name
+  serverSelectionTimeoutMS: 15000, // Timeout after 15 seconds
+  socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
+}).then(() => {
+  log('✅ Connected to MongoDB Atlas', 'mongodb');
+}).catch((err: Error) => {
+  log(`❌ Failed to connect to MongoDB: ${err.message}`, 'mongodb');
+  log('Continuing with in-memory storage as fallback', 'storage');
+});
+
 // Main application startup
 (async () => {
   try {
-    // Try to connect to MongoDB Atlas
-    try {
-      await connectDB();
-      log('Using MongoDB Atlas for data storage', 'storage');
-    } catch (dbError: any) {
-      log(`MongoDB connection failed: ${dbError.message}`, 'storage');
-      log('Continuing with in-memory storage as fallback', 'storage');
-      
-      // Update storage variable to use MemStorage instead
-      // This is handled in storage.ts with a fallback mechanism
-    }
+    // MongoDB connection is now handled above
 
     // Register API routes
     const server = await registerRoutes(app);
