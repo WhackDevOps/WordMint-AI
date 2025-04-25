@@ -1,0 +1,126 @@
+## 🧠 ROLE  
+You are a **senior full-stack engineer** tasked with building a production-grade SaaS application from an existing static HTML MVP.
+
+---
+
+## 🎯 GOAL  
+Convert the MVP into a robust SaaS stack using modern best practices, clean architecture, and full deployment readiness.  
+
+---
+
+## 📦 CONTEXT  
+- Use **Node.js 18**, **Express**, and **MongoDB** via Mongoose.
+- Integrate **Stripe Checkout** and **OpenAI's GPT-4o API** for dynamic content generation.
+- Reuse the existing HTML dashboard as the front-end template (no redesign, just API binding).
+- All code must be testable, modular, and respect separation of concerns.
+
+---
+
+## 🔧 FUNCTIONAL GOALS
+
+### 1. 🚀 Backend Scaffold
+- Set up an Express server with routes under `/api`.
+- Use Mongoose models to persist `Order` documents.
+
+### 2. 🔐 Secure REST API
+- Implement the following routes:
+  - `POST /api/orders` – Create a new order **only after Stripe payment success**
+  - `GET /api/orders/:id` – Return order info + content when ready
+  - `GET /api/orders` – Admin-only list of all orders
+- Secure all endpoints with **JWT cookie-based auth** (admin routes only).
+
+### 3. 💳 Stripe Integration
+- Use Stripe Checkout to calculate `pricePerWord (cents) × wordCount`.
+- Confirm payment via **Stripe webhook**, then enqueue content generation.
+- Store Stripe `paymentIntentId` for traceability.
+
+### 4. 🧠 GPT-4o Content Generation
+- Use GPT-4o with `temperature: 0.7`.
+- Use the following system-prompt:
+  ```plaintext
+  You are an SEO copywriter. Generate content based on the user's topic and word count.
+Prompt includes: {topic}, {wordCount}.
+
+Ensure OpenAI token usage is tracked (apiCost field).
+
+5. 📧 Status E-mails
+Send Nodemailer-based e-mails at 3 stages:
+
+"received"
+
+"in-progress"
+
+"completed"
+
+Use SMTP placeholders in .env.example.
+
+6. 🗃 Data Persistence (MongoDB)
+Store in each Order:
+
+json
+Copy
+Edit
+{
+  "status": "pending|processing|complete",
+  "topic": "...",
+  "wordCount": 500,
+  "price": 2500,
+  "apiCost": 120,
+  "content": "...",
+  "customerEmail": "...",
+  "timestamps": { "createdAt": "...", "updatedAt": "..." }
+}
+7. 🖥 Dashboard Port
+Reuse /public/index.html and bind it to the new API.
+
+Replace all localStorage logic with backend data fetches.
+
+8. 🔐 Authentication
+Admin routes (/admin/*) must be protected with JWT in an HTTP-only cookie.
+
+Add login UI with simple email + password form (no OAuth needed).
+
+9. 📦 Dev & Deployment Readiness
+Include:
+
+.env.example with required secrets
+
+README.md with Quick Start and Deployment Notes
+
+Prettier + ESLint config files
+
+Procfile for Replit deployment
+
+Jest test for the OpenAI content generator utility
+
+10. 🔁 Seeding Script
+A single npm run seed script must:
+
+Create an admin user
+
+Create a Stripe product + pricing tier for $0.05 per word
+
+🚧 CONSTRAINTS
+Use async/await throughout (no .then() chains).
+
+Never log raw API keys, secrets, or customer PII.
+
+Lint (npm run lint) and tests (npm test) must pass before finishing.
+
+📤 DELIVERABLES
+All code in this repo, runnable via:
+
+bash
+Copy
+Edit
+npm install && npm start
+Short deployment instructions appended to the README.md.
+
+🧙 Tips for Maximum ✨SaaS Wizardry✨
+Use environment variables for all external configs.
+
+Implement exponential backoff or retry logic for Stripe or OpenAI failures.
+
+Avoid leaking async errors — always catch and respond with structured error payloads.
+
+Keep all third-party SDK versions pinned in package.json.
